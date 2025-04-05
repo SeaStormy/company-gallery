@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Login from './Login';
 
-const Navbar: React.FC = () => {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+interface NavbarProps {
+  isAdmin: boolean;
+  onLoginClick: () => void;
+  onLogout: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ isAdmin, onLoginClick, onLogout }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -64,20 +68,36 @@ const Navbar: React.FC = () => {
                 ))}
               </div>
 
-              {/* Desktop Login Button */}
-              <button
-                onClick={() => setIsLoginOpen(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300
-                  ${
-                    isScrolled
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  }
-                  hover:from-purple-700 hover:to-blue-600
-                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
-              >
-                Login
-              </button>
+              {/* Desktop Login/Logout Button */}
+              {isAdmin ? (
+                <button
+                  onClick={onLogout}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300
+                    ${
+                      isScrolled
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }
+                    hover:from-purple-700 hover:to-blue-600
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={onLoginClick}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300
+                    ${
+                      isScrolled
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }
+                    hover:from-purple-700 hover:to-blue-600
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
+                >
+                  Login
+                </button>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -152,25 +172,45 @@ const Navbar: React.FC = () => {
                 {item.name}
               </Link>
             ))}
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className={`w-full mt-2 px-4 py-2 rounded-md text-base font-medium transition-all duration-300
-                ${
-                  isScrolled
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }
-                hover:from-purple-700 hover:to-blue-600
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
-            >
-              Login
-            </button>
+            {isAdmin ? (
+              <button
+                onClick={() => {
+                  onLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full mt-2 px-4 py-2 rounded-md text-base font-medium transition-all duration-300
+                  ${
+                    isScrolled
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }
+                  hover:from-purple-700 hover:to-blue-600
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  onLoginClick();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full mt-2 px-4 py-2 rounded-md text-base font-medium transition-all duration-300
+                  ${
+                    isScrolled
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }
+                  hover:from-purple-700 hover:to-blue-600
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500`}
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       </nav>
       <div className="h-16"></div> {/* Spacer for fixed navbar */}
-      {/* Login Modal */}
-      <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   );
 };
