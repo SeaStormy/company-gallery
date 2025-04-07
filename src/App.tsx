@@ -5,10 +5,12 @@ import Home from './components/Home';
 import Products from './components/Products';
 import Login from './components/Login';
 import Setup from './components/Setup';
+import Settings from './components/Settings';
 
 const App: React.FC = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [notificationHeight, setNotificationHeight] = useState(0);
 
   // Check admin status on component mount
   useEffect(() => {
@@ -54,31 +56,28 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-100">
         <Navbar
           isAdmin={isAdmin}
-          onLoginClick={() => setIsLoginOpen(true)}
           onLogout={handleLogout}
+          onLoginClick={() => setIsLoginOpen(true)}
+          onNotificationHeightChange={setNotificationHeight}
         />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products isAdmin={isAdmin} />} />
-          <Route path="/setup" element={<Setup />} />
-          <Route
-            path="/showcases"
-            element={
-              <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-8">Showcases</h1>
-                <p>Showcases content will be added here.</p>
-              </div>
-            }
+        <main style={{ paddingTop: `${notificationHeight + 64}px` }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products isAdmin={isAdmin} />} />
+            <Route path="/setup" element={<Setup />} />
+            {isAdmin && <Route path="/settings" element={<Settings />} />}
+          </Routes>
+        </main>
+        {isLoginOpen && (
+          <Login
+            isOpen={isLoginOpen}
+            onClose={() => setIsLoginOpen(false)}
+            onLogin={handleLogin}
           />
-        </Routes>
-        <Login
-          isOpen={isLoginOpen}
-          onClose={() => setIsLoginOpen(false)}
-          onLogin={handleLogin}
-        />
+        )}
       </div>
     </Router>
   );

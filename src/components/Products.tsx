@@ -1,188 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../types/Product';
+import { API_URL } from '../services/api';
 import ProductForm from './ProductForm';
-
-// Temporary mock data - replace with actual API call later
-const mockProducts: Product[] = [
-  {
-    _id: '1',
-    name: 'Enterprise Software Solution',
-    description:
-      'Comprehensive software solution for large enterprises with advanced features and scalable architecture',
-    price: 9999,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    _id: '2',
-    name: 'Cloud Migration Service',
-    description: 'Seamless cloud migration and management',
-    price: 5999,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    _id: '3',
-    name: 'Cybersecurity Package',
-    description:
-      'Advanced security solutions for your business with real-time threat detection and prevention',
-    price: 7999,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    _id: '4',
-    name: 'AI Development Kit',
-    description: 'Tools and frameworks for AI development',
-    price: 4999,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    _id: '5',
-    name: 'Digital Transformation Package',
-    description:
-      'Complete digital transformation solution with comprehensive implementation and support',
-    price: 12999,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    _id: '6',
-    name: 'IoT Platform',
-    description: 'Comprehensive IoT development and management platform',
-    price: 6999,
-    image: 'https://picsum.photos/200/300',
-  },
-];
-
-const ProductCard: React.FC<{
-  product: Product;
-  onEdit?: (product: Product) => void;
-  onDelete?: (product: Product) => void;
-  isSelected?: boolean;
-  onSelect?: (product: Product) => void;
-}> = ({ product, onEdit, onDelete, isSelected, onSelect }) => {
-  return (
-    <div
-      className={`bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:transform hover:scale-105 h-[350px] flex flex-col relative ${
-        isSelected ? 'ring-2 ring-purple-500' : ''
-      }`}
-    >
-      {/* Selection Checkbox */}
-      {onSelect && (
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onSelect(product)}
-          className="absolute top-4 left-4 h-5 w-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-        />
-      )}
-
-      {/* Edit Button */}
-      {onEdit && (
-        <button
-          onClick={() => onEdit(product)}
-          className="absolute top-4 right-16 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
-        >
-          <svg
-            className="w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-        </button>
-      )}
-
-      {/* Delete Button */}
-      {onDelete && (
-        <button
-          onClick={() => onDelete(product)}
-          className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
-        >
-          <svg
-            className="w-5 h-5 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-        </button>
-      )}
-
-      <div className="h-32 w-full">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-          {product.name}
-        </h3>
-        <p className="text-gray-600 mb-2 text-sm line-clamp-3">
-          {product.description}
-        </p>
-        <div className="mb-2">
-          <span className="text-xl font-bold text-purple-600">
-            ${product.price.toLocaleString()}
-          </span>
-        </div>
-        <div className="flex space-x-2 mt-auto">
-          <button
-            onClick={() => {
-              /* Add view details logic */
-            }}
-            className="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-md hover:bg-purple-700 transition-colors duration-300 text-sm"
-          >
-            View Details
-          </button>
-          <button
-            onClick={() => {
-              /* Add contact logic */
-            }}
-            className="flex-1 bg-gradient-to-r from-cyan-400 to-purple-500 text-white py-1.5 px-3 rounded-md hover:from-cyan-500 hover:to-purple-600 transition-colors duration-300 text-sm"
-          >
-            Contact
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import ProductDetailsModal from './ProductDetailsModal';
+import { Product } from '../types/Product';
 
 interface ProductsProps {
   isAdmin: boolean;
 }
 
+interface Filter {
+  search: string;
+  minPrice: string;
+  maxPrice: string;
+  sortBy: 'name' | 'price';
+  sortOrder: 'asc' | 'desc';
+}
+
+// Temporary mock data - replace with actual API call later
+const mockProducts: Product[] = [
+  {
+    _id: '1',
+    name: 'Product 1',
+    description: 'This is a description for product 1',
+    price: 99.99,
+    image: 'product1.jpg',
+    category: 'Category 1',
+    specifications: {
+      'Spec 1': 'Value 1',
+      'Spec 2': 'Value 2',
+    },
+  },
+  {
+    _id: '2',
+    name: 'Product 2',
+    description: 'This is a description for product 2',
+    price: 149.99,
+    image: 'product2.jpg',
+    category: 'Category 2',
+    specifications: {
+      'Spec 1': 'Value 1',
+      'Spec 2': 'Value 2',
+    },
+  },
+  {
+    _id: '3',
+    name: 'Product 3',
+    description: 'This is a description for product 3',
+    price: 199.99,
+    image: 'product3.jpg',
+    category: 'Category 1',
+    specifications: {
+      'Spec 1': 'Value 1',
+      'Spec 2': 'Value 2',
+    },
+  },
+];
+
 const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [filters, setFilters] = useState<Filter>({
+    search: '',
+    minPrice: '',
+    maxPrice: '',
+    sortBy: 'name',
+    sortOrder: 'asc',
+  });
+  const [isFilterActive, setIsFilterActive] = useState(false);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/products`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
+      setIsLoading(true);
+      const response = await fetch(`${API_URL}/api/products`);
       const data = await response.json();
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,15 +101,12 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/products/${product._id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/api/products/${product._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error('Failed to delete product');
@@ -238,7 +134,7 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     try {
       const token = localStorage.getItem('token');
       const deletePromises = selectedProducts.map((product) =>
-        fetch(`${process.env.REACT_APP_API_URL}/api/products/${product._id}`, {
+        fetch(`${API_URL}/api/products/${product._id}`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -260,35 +156,23 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
 
   const handleSubmit = async (formData: Omit<Product, '_id'>) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const url = selectedProduct
-        ? `${process.env.REACT_APP_API_URL}/api/products/${selectedProduct._id}`
-        : `${process.env.REACT_APP_API_URL}/api/products`;
-
-      const response = await fetch(url, {
-        method: selectedProduct ? 'PUT' : 'POST',
+      const response = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to save product');
+        throw new Error('Failed to create product');
       }
 
-      // Refresh the products list
-      fetchProducts();
-      setSelectedProduct(undefined);
+      const newProduct = await response.json();
+      setProducts([...products, newProduct]);
+      setIsFormOpen(false);
     } catch (error) {
-      console.error('Error saving product:', error);
-      throw error;
+      console.error('Error creating product:', error);
     }
   };
 
@@ -308,78 +192,324 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     }
   };
 
+  const filteredProducts = React.useMemo(() => {
+    if (!isFilterActive) {
+      return products;
+    }
+
+    return products
+      .filter((product) => {
+        const matchesSearch = product.name
+          .toLowerCase()
+          .includes(filters.search.toLowerCase());
+        const matchesMinPrice =
+          !filters.minPrice || product.price >= Number(filters.minPrice);
+        const matchesMaxPrice =
+          !filters.maxPrice || product.price <= Number(filters.maxPrice);
+        return matchesSearch && matchesMinPrice && matchesMaxPrice;
+      })
+      .sort((a, b) => {
+        if (filters.sortBy === 'name') {
+          return filters.sortOrder === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        } else {
+          return filters.sortOrder === 'asc'
+            ? a.price - b.price
+            : b.price - a.price;
+        }
+      });
+  }, [products, filters, isFilterActive]);
+
+  const handleFilterChange = (newFilters: Partial<Filter>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setIsFilterActive(true);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-12">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Products
-            </h1>
-            <p className="text-lg text-gray-600">
-              Discover our range of innovative solutions and services
-            </p>
-          </div>
-          {isAdmin && (
-            <div className="flex space-x-4">
-              <button
-                onClick={toggleBulkDeleteMode}
-                className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  isBulkDeleteMode
-                    ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
-                    : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
-                }`}
-              >
-                {isBulkDeleteMode ? 'Cancel Selection' : 'Bulk Delete'}
-              </button>
-              {selectedProducts.length > 0 && (
-                <button
-                  onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                >
-                  Delete Selected ({selectedProducts.length})
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setSelectedProduct(undefined);
-                  setIsFormOpen(true);
-                }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-              >
-                Add New Product
-              </button>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex gap-8">
+        {/* Filters - 1/4 width */}
+        <div className="w-1/4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold mb-4">Filters</h2>
+
+            {/* Search */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => handleFilterChange({ search: e.target.value })}
+                placeholder="Search products..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
             </div>
-          )}
+
+            {/* Price Range */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price Range
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={filters.minPrice}
+                  onChange={(e) =>
+                    handleFilterChange({ minPrice: e.target.value })
+                  }
+                  placeholder="Min"
+                  className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <input
+                  type="number"
+                  value={filters.maxPrice}
+                  onChange={(e) =>
+                    handleFilterChange({ maxPrice: e.target.value })
+                  }
+                  placeholder="Max"
+                  className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+
+            {/* Sort */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sort By
+              </label>
+              <select
+                value={filters.sortBy}
+                onChange={(e) =>
+                  handleFilterChange({
+                    sortBy: e.target.value as 'name' | 'price',
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="name">Name</option>
+                <option value="price">Price</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sort Order
+              </label>
+              <select
+                value={filters.sortOrder}
+                onChange={(e) =>
+                  handleFilterChange({
+                    sortOrder: e.target.value as 'asc' | 'desc',
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+
+            {/* Admin Actions */}
+            {isAdmin && (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setIsFormOpen(true)}
+                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-300"
+                >
+                  Create New Product
+                </button>
+                <button
+                  onClick={toggleBulkDeleteMode}
+                  className={`w-full py-2 px-4 rounded-md transition-colors duration-300 ${
+                    isBulkDeleteMode
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {isBulkDeleteMode ? 'Cancel Bulk Delete' : 'Bulk Delete'}
+                </button>
+                {isBulkDeleteMode && selectedProducts.length > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors duration-300"
+                  >
+                    Delete Selected ({selectedProducts.length})
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product._id}
-              product={product}
-              onEdit={isAdmin ? handleEdit : undefined}
-              onDelete={isAdmin ? handleDelete : undefined}
-              isSelected={selectedProducts.some((p) => p._id === product._id)}
-              onSelect={
-                isAdmin && isBulkDeleteMode ? toggleProductSelection : undefined
-              }
-            />
-          ))}
+        {/* Products Grid - 3/4 width */}
+        <div className="w-3/4">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No products found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  isAdmin={isAdmin}
+                  isSelected={selectedProducts.some(
+                    (p) => p._id === product._id
+                  )}
+                  onSelect={() => toggleProductSelection(product)}
+                  onDelete={() => handleDelete(product)}
+                  onEdit={() => handleEdit(product)}
+                  onViewDetails={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Product Form Modal */}
-      <ProductForm
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedProduct(undefined);
-        }}
-        onSubmit={handleSubmit}
-        initialData={selectedProduct}
-      />
+      {isFormOpen && (
+        <ProductForm
+          product={selectedProduct}
+          onClose={() => {
+            setIsFormOpen(false);
+            setSelectedProduct(null);
+          }}
+          onSubmit={handleSubmit}
+        />
+      )}
+
+      {/* Product Details Modal */}
+      {selectedProduct && (
+        <ProductDetailsModal
+          product={{
+            id: selectedProduct._id,
+            name: selectedProduct.name,
+            description: selectedProduct.description,
+            price: selectedProduct.price,
+            image: selectedProduct.image,
+            category: selectedProduct.category,
+            specifications: selectedProduct.specifications,
+          }}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+interface ProductCardProps {
+  product: Product;
+  isAdmin: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
+  onViewDetails: () => void;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  isAdmin,
+  isSelected,
+  onSelect,
+  onDelete,
+  onEdit,
+  onViewDetails,
+}) => {
+  return (
+    <div
+      className={`bg-white rounded-lg shadow-md overflow-hidden relative ${
+        isSelected ? 'ring-2 ring-blue-500' : ''
+      }`}
+    >
+      {/* Selection Checkbox */}
+      {isAdmin && (
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onSelect}
+          className="absolute top-4 left-4 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+        />
+      )}
+
+      {/* Edit Button */}
+      {isAdmin && (
+        <button
+          onClick={onEdit}
+          className="absolute top-4 right-16 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
+        >
+          <svg
+            className="w-5 h-5 text-gray-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* Delete Button */}
+      {isAdmin && (
+        <button
+          onClick={onDelete}
+          className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
+        >
+          <svg
+            className="w-5 h-5 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </button>
+      )}
+
+      <div className="h-32 w-full">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {product.name}
+        </h3>
+        <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold text-blue-600">
+            ${product.price.toLocaleString()}
+          </span>
+          <button
+            onClick={onViewDetails}
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            View Details
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

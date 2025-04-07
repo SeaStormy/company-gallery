@@ -13,7 +13,7 @@ const Home: React.FC = () => {
       >
         <div className="h-full w-full bg-black bg-opacity-50 flex items-center justify-center">
           <div className="text-center text-white">
-            <h1 className="text-5xl font-bold mb-4">Welcome to FPT</h1>
+            <h1 className="text-5xl font-bold mb-4">Welcome to ABC</h1>
             <p className="text-xl">
               Discover our innovative solutions and services
             </p>
@@ -27,7 +27,7 @@ const Home: React.FC = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">About FPT</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              FPT Corporation is a leading technology company in Vietnam,
+              ABC Corporation is a leading technology company in Vietnam,
               pioneering in digital transformation and technology innovation.
               With a global presence and decades of experience, we deliver
               world-class services in IT Solutions, Digital Transformation, and
@@ -93,7 +93,8 @@ const Home: React.FC = () => {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  FPT Complex, Da Nang City, Vietnam
+                  100 Dien Bien Phu, Binh Thanh District, Ho Chi Minh City,
+                  Vietnam
                 </p>
                 <p className="flex items-center">
                   <svg
@@ -125,7 +126,7 @@ const Home: React.FC = () => {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  contact@fpt.com.vn
+                  contact@abc.com.vn
                 </p>
               </div>
             </div>
@@ -171,7 +172,7 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-            <p>© 2024 FPT Corporation. All rights reserved.</p>
+            <p>© 2025 ABC Corporation. All rights reserved.</p>
           </div>
         </div>
       </footer>
