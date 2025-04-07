@@ -11,6 +11,7 @@ const Notification: React.FC<NotificationProps> = ({ onHeightChange }) => {
     isActive: boolean;
   } | null>(null);
   const [shouldScroll, setShouldScroll] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +34,20 @@ const Notification: React.FC<NotificationProps> = ({ onHeightChange }) => {
   }, []);
 
   useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  useEffect(() => {
     if (containerRef.current && contentRef.current) {
       const containerWidth = containerRef.current.offsetWidth;
       const contentWidth = contentRef.current.offsetWidth;
@@ -42,6 +57,21 @@ const Notification: React.FC<NotificationProps> = ({ onHeightChange }) => {
   }, [notification, onHeightChange]);
 
   if (!notification?.isActive) return null;
+
+  // Calculate animation duration based on content length and device
+  const getAnimationDuration = () => {
+    if (!contentRef.current) return 20;
+
+    const contentLength = notification.text.length;
+    // Base speed: 1 character per 0.2 seconds
+    const baseSpeed = contentLength * 0.2;
+    // Add extra time for mobile to make it more readable
+    const mobileFactor = isMobile ? 1.5 : 1;
+    // Add extra time for longer messages
+    const lengthFactor = contentLength > 50 ? 1.3 : 1;
+
+    return Math.max(15, Math.min(60, baseSpeed * mobileFactor * lengthFactor));
+  };
 
   return (
     <div
@@ -56,12 +86,11 @@ const Notification: React.FC<NotificationProps> = ({ onHeightChange }) => {
         }`}
         style={
           shouldScroll
-            ? {
+            ? ({
                 position: 'absolute',
                 whiteSpace: 'nowrap',
-                animation: 'marquee 20s linear infinite',
-                paddingLeft: '100%',
-              }
+                '--marquee-duration': `${getAnimationDuration()}s`,
+              } as React.CSSProperties)
             : undefined
         }
       >

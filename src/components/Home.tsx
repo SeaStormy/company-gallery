@@ -1,21 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import backgroundImage from '../assets/background.jpg';
+import { API_URL } from '../services/api';
+
+interface Settings {
+  landingPageImage?: string;
+  landingPageTitle?: string;
+  landingPageDescription?: string;
+}
 
 const Home: React.FC = () => {
+  const [settings, setSettings] = useState<Settings>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/settings`);
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section with Background */}
       <div
         className="h-[calc(100vh-64px)] bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${
+            settings.landingPageImage || backgroundImage
+          })`,
         }}
       >
         <div className="h-full w-full bg-black bg-opacity-50 flex items-center justify-center">
           <div className="text-center text-white">
-            <h1 className="text-5xl font-bold mb-4">Welcome to ABC</h1>
+            <h1 className="text-5xl font-bold mb-4">
+              {settings.landingPageTitle || 'Welcome to ABC'}
+            </h1>
             <p className="text-xl">
-              Discover our innovative solutions and services
+              {settings.landingPageDescription ||
+                'Discover our innovative solutions and services'}
             </p>
           </div>
         </div>
@@ -25,7 +58,7 @@ const Home: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">About FPT</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">About ABC</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               ABC Corporation is a leading technology company in Vietnam,
               pioneering in digital transformation and technology innovation.

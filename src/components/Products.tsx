@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL } from '../services/api';
 import ProductForm from './ProductForm';
 import ProductDetailsModal from './ProductDetailsModal';
+import ConfirmationModal from './ConfirmationModal';
 import { Product } from '../types/Product';
 
 interface ProductsProps {
@@ -71,6 +72,17 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     sortOrder: 'asc',
   });
   const [isFilterActive, setIsFilterActive] = useState(false);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    product: Product | null;
+    isBulk: boolean;
+  }>({
+    isOpen: false,
+    product: null,
+    isBulk: false,
+  });
+  const [viewMode, setViewMode] = useState<'view' | 'edit' | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -91,66 +103,71 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
-    setIsFormOpen(true);
+    setViewMode('edit');
+  };
+
+  const handleViewDetails = (product: Product) => {
+    setSelectedProduct(product);
+    setViewMode('view');
   };
 
   const handleDelete = async (product: Product) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/products/${product._id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
-      }
-
-      // Refresh the products list
-      fetchProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product');
-    }
+    setDeleteModal({
+      isOpen: true,
+      product,
+      isBulk: false,
+    });
   };
 
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete ${selectedProducts.length} products?`
-      )
-    ) {
-      return;
-    }
+    setDeleteModal({
+      isOpen: true,
+      product: null,
+      isBulk: true,
+    });
+  };
 
+  const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      const deletePromises = selectedProducts.map((product) =>
-        fetch(`${API_URL}/api/products/${product._id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      );
 
-      await Promise.all(deletePromises);
+      if (deleteModal.isBulk) {
+        const deletePromises = selectedProducts.map((product) =>
+          fetch(`${API_URL}/api/products/${product._id}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        );
+
+        await Promise.all(deletePromises);
+        setSelectedProducts([]);
+        setIsBulkDeleteMode(false);
+      } else if (deleteModal.product) {
+        const response = await fetch(
+          `${API_URL}/api/products/${deleteModal.product._id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to delete product');
+        }
+      }
 
       // Refresh the products list
       fetchProducts();
-      setSelectedProducts([]);
-      setIsBulkDeleteMode(false);
     } catch (error) {
-      console.error('Error deleting products:', error);
-      alert('Failed to delete products');
+      console.error('Error deleting product(s):', error);
+    } finally {
+      setDeleteModal({ isOpen: false, product: null, isBulk: false });
     }
   };
 
@@ -226,127 +243,170 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     setIsFilterActive(true);
   };
 
+  const FilterDrawer = () => (
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Filters</h2>
+        <button
+          onClick={() => setIsFilterDrawerOpen(false)}
+          className="sm:hidden text-gray-500 hover:text-gray-700"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Search
+        </label>
+        <input
+          type="text"
+          value={filters.search}
+          onChange={(e) => handleFilterChange({ search: e.target.value })}
+          placeholder="Search products..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+      </div>
+
+      {/* Price Range */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Price Range
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            value={filters.minPrice}
+            onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
+            placeholder="Min"
+            className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <input
+            type="number"
+            value={filters.maxPrice}
+            onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
+            placeholder="Max"
+            className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+      </div>
+
+      {/* Sort */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Sort By
+        </label>
+        <select
+          value={filters.sortBy}
+          onChange={(e) =>
+            handleFilterChange({
+              sortBy: e.target.value as 'name' | 'price',
+            })
+          }
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="name">Name</option>
+          <option value="price">Price</option>
+        </select>
+      </div>
+
+      {/* Sort Order */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Sort Order
+        </label>
+        <select
+          value={filters.sortOrder}
+          onChange={(e) =>
+            handleFilterChange({
+              sortOrder: e.target.value as 'asc' | 'desc',
+            })
+          }
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </div>
+
+      {/* Admin Actions */}
+      {isAdmin && (
+        <div className="space-y-3">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-300"
+          >
+            Create New Product
+          </button>
+          <button
+            onClick={toggleBulkDeleteMode}
+            className={`w-full py-2 px-4 rounded-md transition-colors duration-300 ${
+              isBulkDeleteMode
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {isBulkDeleteMode ? 'Cancel Bulk Delete' : 'Bulk Delete'}
+          </button>
+          {isBulkDeleteMode && selectedProducts.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors duration-300"
+            >
+              Delete Selected ({selectedProducts.length})
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex gap-8">
-        {/* Filters - 1/4 width */}
-        <div className="w-1/4">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">Filters</h2>
+      {/* Mobile Filter Toggle Button */}
+      <div className="sm:hidden mb-4">
+        <button
+          onClick={() => setIsFilterDrawerOpen(true)}
+          className="w-full bg-white p-4 rounded-lg shadow-md flex items-center justify-between"
+        >
+          <span className="text-gray-700 font-medium">Filters</span>
+          <svg
+            className="w-5 h-5 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
+        </button>
+      </div>
 
-            {/* Search */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
-              <input
-                type="text"
-                value={filters.search}
-                onChange={(e) => handleFilterChange({ search: e.target.value })}
-                placeholder="Search products..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            {/* Price Range */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price Range
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={filters.minPrice}
-                  onChange={(e) =>
-                    handleFilterChange({ minPrice: e.target.value })
-                  }
-                  placeholder="Min"
-                  className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="number"
-                  value={filters.maxPrice}
-                  onChange={(e) =>
-                    handleFilterChange({ maxPrice: e.target.value })
-                  }
-                  placeholder="Max"
-                  className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-
-            {/* Sort */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sort By
-              </label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) =>
-                  handleFilterChange({
-                    sortBy: e.target.value as 'name' | 'price',
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="name">Name</option>
-                <option value="price">Price</option>
-              </select>
-            </div>
-
-            {/* Sort Order */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sort Order
-              </label>
-              <select
-                value={filters.sortOrder}
-                onChange={(e) =>
-                  handleFilterChange({
-                    sortOrder: e.target.value as 'asc' | 'desc',
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
-            </div>
-
-            {/* Admin Actions */}
-            {isAdmin && (
-              <div className="space-y-3">
-                <button
-                  onClick={() => setIsFormOpen(true)}
-                  className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-300"
-                >
-                  Create New Product
-                </button>
-                <button
-                  onClick={toggleBulkDeleteMode}
-                  className={`w-full py-2 px-4 rounded-md transition-colors duration-300 ${
-                    isBulkDeleteMode
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {isBulkDeleteMode ? 'Cancel Bulk Delete' : 'Bulk Delete'}
-                </button>
-                {isBulkDeleteMode && selectedProducts.length > 0 && (
-                  <button
-                    onClick={handleBulkDelete}
-                    className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors duration-300"
-                  >
-                    Delete Selected ({selectedProducts.length})
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+      <div className="flex flex-col sm:flex-row gap-8">
+        {/* Filters - Hidden on mobile, shown in drawer */}
+        <div className="hidden sm:block w-1/4">
+          <FilterDrawer />
         </div>
 
-        {/* Products Grid - 3/4 width */}
-        <div className="w-3/4">
+        {/* Products Grid - Full width on mobile */}
+        <div className="w-full sm:w-3/4">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -368,7 +428,7 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
                   onSelect={() => toggleProductSelection(product)}
                   onDelete={() => handleDelete(product)}
                   onEdit={() => handleEdit(product)}
-                  onViewDetails={() => setSelectedProduct(product)}
+                  onViewDetails={() => handleViewDetails(product)}
                 />
               ))}
             </div>
@@ -376,12 +436,27 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
         </div>
       </div>
 
+      {/* Mobile Filter Drawer */}
+      {isFilterDrawerOpen && (
+        <div className="fixed inset-0 z-50 sm:hidden">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsFilterDrawerOpen(false)}
+          />
+          <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl">
+            <div className="h-full overflow-y-auto">
+              <FilterDrawer />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Product Form Modal */}
-      {isFormOpen && (
+      {viewMode === 'edit' && selectedProduct && (
         <ProductForm
           product={selectedProduct}
           onClose={() => {
-            setIsFormOpen(false);
+            setViewMode(null);
             setSelectedProduct(null);
           }}
           onSubmit={handleSubmit}
@@ -389,7 +464,7 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       )}
 
       {/* Product Details Modal */}
-      {selectedProduct && (
+      {viewMode === 'view' && selectedProduct && (
         <ProductDetailsModal
           product={{
             id: selectedProduct._id,
@@ -400,9 +475,31 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
             category: selectedProduct.category,
             specifications: selectedProduct.specifications,
           }}
-          onClose={() => setSelectedProduct(null)}
+          onClose={() => {
+            setViewMode(null);
+            setSelectedProduct(null);
+          }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title={
+          deleteModal.isBulk ? 'Delete Selected Products' : 'Delete Product'
+        }
+        message={
+          deleteModal.isBulk
+            ? `Are you sure you want to delete ${selectedProducts.length} products? This action cannot be undone.`
+            : `Are you sure you want to delete "${deleteModal.product?.name}"? This action cannot be undone.`
+        }
+        onConfirm={confirmDelete}
+        onCancel={() =>
+          setDeleteModal({ isOpen: false, product: null, isBulk: false })
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };
