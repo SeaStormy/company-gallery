@@ -1,15 +1,106 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import backgroundImage from '../assets/background.jpg';
 import { API_URL } from '../services/api';
 
+type LanguageCode = 'en' | 'vi';
+
 interface Settings {
+  logo?: string;
   landingPageImage?: string;
-  landingPageTitle?: string;
-  landingPageDescription?: string;
+  sections: {
+    contactInfo: {
+      title: string;
+      address: {
+        en: string;
+        vi: string;
+      };
+      phone: string;
+      email: string;
+    };
+    workingHours: {
+      title: string;
+      weekdays: {
+        en: string;
+        vi: string;
+      };
+      saturday: {
+        en: string;
+        vi: string;
+      };
+      sunday: {
+        en: string;
+        vi: string;
+      };
+    };
+  };
+  landingPageTitle: {
+    en: string;
+    vi: string;
+  };
+  landingPageDescription: {
+    en: string;
+    vi: string;
+  };
+  notification: {
+    text: {
+      en: string;
+      vi: string;
+    };
+    isActive: boolean;
+  };
 }
 
+const initialSettings: Settings = {
+  logo: '',
+  landingPageImage: '',
+  sections: {
+    contactInfo: {
+      title: '',
+      address: {
+        en: '',
+        vi: '',
+      },
+      phone: '',
+      email: '',
+    },
+    workingHours: {
+      title: '',
+      weekdays: {
+        en: '',
+        vi: '',
+      },
+      saturday: {
+        en: '',
+        vi: '',
+      },
+      sunday: {
+        en: '',
+        vi: '',
+      },
+    },
+  },
+  landingPageTitle: {
+    en: '',
+    vi: '',
+  },
+  landingPageDescription: {
+    en: '',
+    vi: '',
+  },
+  notification: {
+    text: {
+      en: '',
+      vi: '',
+    },
+    isActive: false,
+  },
+};
+
 const Home: React.FC = () => {
-  const [settings, setSettings] = useState<Settings>({});
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language as LanguageCode;
+  const [settings, setSettings] = useState<Settings>(initialSettings);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +109,22 @@ const Home: React.FC = () => {
         const response = await fetch(`${API_URL}/api/settings`);
         if (response.ok) {
           const data = await response.json();
-          setSettings(data);
+          setSettings((prevSettings) => ({
+            ...initialSettings,
+            ...data,
+            sections: {
+              ...initialSettings.sections,
+              ...(data.sections || {}),
+              contactInfo: {
+                ...initialSettings.sections.contactInfo,
+                ...(data.sections?.contactInfo || {}),
+              },
+              workingHours: {
+                ...initialSettings.sections.workingHours,
+                ...(data.sections?.workingHours || {}),
+              },
+            },
+          }));
         }
       } catch (error) {
         console.error('Error fetching settings:', error);
@@ -44,10 +150,10 @@ const Home: React.FC = () => {
         <div className="h-full w-full bg-black bg-opacity-50 flex items-center justify-center">
           <div className="text-center text-white">
             <h1 className="text-5xl font-bold mb-4">
-              {settings.landingPageTitle || 'Welcome to ABC'}
+              {settings.landingPageTitle[currentLanguage] || 'Welcome to ABC'}
             </h1>
             <p className="text-xl">
-              {settings.landingPageDescription ||
+              {settings.landingPageDescription[currentLanguage] ||
                 'Discover our innovative solutions and services'}
             </p>
           </div>
@@ -58,42 +164,32 @@ const Home: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">About ABC</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              {t('about.title')}
+            </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              ABC Corporation is a leading technology company in Vietnam,
-              pioneering in digital transformation and technology innovation.
-              With a global presence and decades of experience, we deliver
-              world-class services in IT Solutions, Digital Transformation, and
-              Technology Education.
+              {t('about.description')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-6 bg-gray-50 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Our Mission
+                {t('about.mission.title')}
               </h3>
-              <p className="text-gray-600">
-                To be the pioneer in digital transformation, providing
-                world-class services and solutions.
-              </p>
+              <p className="text-gray-600">{t('about.mission.content')}</p>
             </div>
             <div className="p-6 bg-gray-50 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Our Vision
+                {t('about.vision.title')}
               </h3>
-              <p className="text-gray-600">
-                To be a global top 50 digital transformation services and
-                solutions provider by 2030.
-              </p>
+              <p className="text-gray-600">{t('about.vision.content')}</p>
             </div>
             <div className="p-6 bg-gray-50 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Our Values
+                {t('about.values.title')}
               </h3>
-              <p className="text-gray-600">
-                Innovation, Commitment, Teamwork, and Customer-Centricity.
-              </p>
+              <p className="text-gray-600">{t('about.values.content')}</p>
             </div>
           </div>
         </div>
@@ -126,8 +222,8 @@ const Home: React.FC = () => {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  100 Dien Bien Phu, Binh Thanh District, Ho Chi Minh City,
-                  Vietnam
+                  {settings.sections.contactInfo.address[currentLanguage] ||
+                    '100 Dien Bien Phu, Binh Thanh District, Ho Chi Minh City, Vietnam'}
                 </p>
                 <p className="flex items-center">
                   <svg
@@ -143,7 +239,7 @@ const Home: React.FC = () => {
                       d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
-                  +84 236 3952 332
+                  {settings.sections.contactInfo.phone || '+84 236 3952 332'}
                 </p>
                 <p className="flex items-center">
                   <svg
@@ -159,16 +255,25 @@ const Home: React.FC = () => {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  contact@abc.com.vn
+                  {settings.sections.contactInfo.email || 'contact@abc.com.vn'}
                 </p>
               </div>
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-4">Working Hours</h3>
               <div className="space-y-3">
-                <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                <p>Saturday: 8:00 AM - 12:00 PM</p>
-                <p>Sunday: Closed</p>
+                <p>
+                  {settings.sections.workingHours.weekdays[currentLanguage] ||
+                    'Monday - Friday: 8:00 AM - 6:00 PM'}
+                </p>
+                <p>
+                  {settings.sections.workingHours.saturday[currentLanguage] ||
+                    'Saturday: 8:00 AM - 12:00 PM'}
+                </p>
+                <p>
+                  {settings.sections.workingHours.sunday[currentLanguage] ||
+                    'Sunday: Closed'}
+                </p>
               </div>
             </div>
             <div>

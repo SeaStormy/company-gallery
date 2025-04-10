@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LoginProps {
   isOpen: boolean;
@@ -7,6 +8,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,7 +32,7 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || t('login.error'));
       }
 
       // Store the token in localStorage
@@ -38,7 +40,7 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
       onLogin(data.isAdmin);
       onClose();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Login failed');
+      setError(error instanceof Error ? error.message : t('login.error'));
     }
   };
 
@@ -59,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
             <div className="sm:flex sm:items-start">
               <div className="w-full mt-3 text-center sm:mt-0 sm:text-left">
                 <h3 className="text-2xl font-medium leading-6 text-gray-900">
-                  Admin Login
+                  {t('login.title')}
                 </h3>
                 <div className="mt-4">
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +70,7 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
                         htmlFor="email"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Email
+                        {t('login.email')}
                       </label>
                       <input
                         type="email"
@@ -84,7 +86,7 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
                         htmlFor="password"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Password
+                        {t('login.password')}
                       </label>
                       <input
                         type="password"
@@ -104,13 +106,13 @@ const Login: React.FC<LoginProps> = ({ isOpen, onClose, onLogin }) => {
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                       >
-                        Cancel
+                        {t('login.cancel')}
                       </button>
                       <button
                         type="submit"
                         className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                       >
-                        Login
+                        {t('login.submit')}
                       </button>
                     </div>
                   </form>

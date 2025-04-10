@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Setup: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [setupToken, setSetupToken] = useState('');
   const [error, setError] = useState('');
-  const [needsSetup, setNeedsSetup] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkSetup = async () => {
+    const checkSetupStatus = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/check-setup`
+          `${process.env.REACT_APP_API_URL}/api/settings/check-setup`
         );
         const data = await response.json();
-        setNeedsSetup(data.needsSetup);
+        setNeedsSetup(!data.isSetup);
       } catch (error) {
         console.error('Error checking setup status:', error);
-        setError('Failed to check setup status');
       }
     };
 
-    checkSetup();
+    checkSetupStatus();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,11 +63,10 @@ const Setup: React.FC = () => {
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Setup Already Completed
+              {t('setup.title')}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              The initial setup has already been completed. Please use the login
-              page to access the admin panel.
+              {t('setup.message')}
             </p>
           </div>
           <div className="mt-8 text-center">
@@ -74,7 +74,7 @@ const Setup: React.FC = () => {
               onClick={() => navigate('/login')}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
-              Go to Login
+              {t('setup.goToLogin')}
             </button>
           </div>
         </div>

@@ -1,0 +1,112 @@
+{
+  "navbar": {
+    "home": "Home",
+    "products": "Products",
+    "showcases": "Showcases",
+    "settings": "Settings",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "login": {
+    "title": "Admin Login",
+    "email": "Email",
+    "password": "Password",
+    "cancel": "Cancel",
+    "submit": "Login",
+    "error": "Login failed"
+  },
+  "setup": {
+    "title": "Setup Complete",
+    "message": "Initial setup has been completed. Please use the login page to access the admin dashboard.",
+    "goToLogin": "Go to Login"
+  },
+  "common": {
+    "language": "Language",
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  },
+  "products": {
+    "filter": {
+      "title": "Filter Products",
+      "search": "Search products...",
+      "price": "Price Range",
+      "min": "Min",
+      "max": "Max",
+      "sort": "Sort By",
+      "name": "Name",
+      "price": "Price",
+      "order": "Sort Order",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "actions": {
+      "create": "Create New Product",
+      "bulkDelete": "Bulk Delete",
+      "cancelBulkDelete": "Cancel Bulk Delete",
+      "deleteSelected": "Delete Selected ({{count}})",
+      "viewDetails": "View Details"
+    }
+  },
+  "settings": {
+    "title": "Website Settings",
+    "general": "General Settings",
+    "appearance": "Appearance",
+    "social": "Social Media",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "sections": {
+      "companyLogo": {
+        "title": "Company Logo",
+        "upload": "Upload Logo (SVG, ICO, PNG, JPEG, GIF, WebP)",
+        "recommendation": "Recommended: SVG or ICO format. Max size: 2MB.",
+        "currentLogo": "Current Logo:",
+        "newLogoPreview": "New Logo Preview:"
+      },
+      "landingPage": {
+        "title": "Landing Page",
+        "image": "Landing Page Image",
+        "currentImage": "Current Image:",
+        "newImagePreview": "New Image Preview:",
+        "titleField": "Landing Page Title",
+        "description": "Landing Page Description"
+      },
+      "contactInfo": {
+        "title": "Contact Information",
+        "address": "Address",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "workingHours": {
+        "title": "Working Hours",
+        "weekdays": "Weekdays",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      },
+      "notification": {
+        "title": "Notification Settings",
+        "text": "Notification Text",
+        "showNotification": "Show notification"
+      }
+    },
+    "buttons": {
+      "save": "Save Settings",
+      "saving": "Saving..."
+    }
+  },
+  "about": {
+    "title": "About ABC Corporation",
+    "description": "ABC Corporation is a leading technology company in Vietnam, pioneering in digital transformation and technology innovation. With a global presence and decades of experience, we deliver world-class services in IT Solutions, Digital Transformation, and Technology Education.",
+    "mission": {
+      "title": "Our Mission",
+      "content": "To be the pioneer in digital transformation, providing world-class services and solutions."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "content": "To be a global top 50 digital transformation services and solutions provider by 2030."
+    },
+    "values": {
+      "title": "Our Values",
+      "content": "Innovation, Commitment, Teamwork, and Customer-Centricity."
+    }
+  }
+} 

@@ -1,0 +1,112 @@
+{
+  "navbar": {
+    "home": "Trang chủ",
+    "products": "Sản phẩm",
+    "showcases": "Trưng bày",
+    "settings": "Cài đặt",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất"
+  },
+  "login": {
+    "title": "Đăng nhập Admin",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "cancel": "Hủy",
+    "submit": "Đăng nhập",
+    "error": "Đăng nhập thất bại"
+  },
+  "setup": {
+    "title": "Cài đặt đã hoàn tất",
+    "message": "Quá trình cài đặt ban đầu đã hoàn tất. Vui lòng sử dụng trang đăng nhập để truy cập bảng điều khiển admin.",
+    "goToLogin": "Đi đến trang đăng nhập"
+  },
+  "common": {
+    "language": "Ngôn ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  },
+  "products": {
+    "filter": {
+      "title": "Lọc sản phẩm",
+      "search": "Tìm kiếm sản phẩm...",
+      "price": "Khoảng giá",
+      "min": "Tối thiểu",
+      "max": "Tối đa",
+      "sort": "Sắp xếp theo",
+      "name": "Tên",
+      "price": "Giá",
+      "order": "Thứ tự sắp xếp",
+      "ascending": "Tăng dần",
+      "descending": "Giảm dần"
+    },
+    "actions": {
+      "create": "Tạo sản phẩm mới",
+      "bulkDelete": "Xóa hàng loạt",
+      "cancelBulkDelete": "Hủy xóa hàng loạt",
+      "deleteSelected": "Xóa đã chọn ({{count}})",
+      "viewDetails": "Xem chi tiết"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt website",
+    "general": "Cài đặt chung",
+    "appearance": "Giao diện",
+    "social": "Mạng xã hội",
+    "save": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "sections": {
+      "companyLogo": {
+        "title": "Logo công ty",
+        "upload": "Tải lên Logo (SVG, ICO, PNG, JPEG, GIF, WebP)",
+        "recommendation": "Khuyến nghị: Định dạng SVG hoặc ICO. Kích thước tối đa: 2MB.",
+        "currentLogo": "Logo hiện tại:",
+        "newLogoPreview": "Xem trước Logo mới:"
+      },
+      "landingPage": {
+        "title": "Trang chủ",
+        "image": "Hình ảnh trang chủ",
+        "currentImage": "Hình ảnh hiện tại:",
+        "newImagePreview": "Xem trước hình ảnh mới:",
+        "titleField": "Tiêu đề trang chủ",
+        "description": "Mô tả trang chủ"
+      },
+      "contactInfo": {
+        "title": "Thông tin liên hệ",
+        "address": "Địa chỉ",
+        "phone": "Điện thoại",
+        "email": "Email"
+      },
+      "workingHours": {
+        "title": "Giờ làm việc",
+        "weekdays": "Ngày thường",
+        "saturday": "Thứ bảy",
+        "sunday": "Chủ nhật"
+      },
+      "notification": {
+        "title": "Cài đặt thông báo",
+        "text": "Nội dung thông báo",
+        "showNotification": "Hiển thị thông báo"
+      }
+    },
+    "buttons": {
+      "save": "Lưu cài đặt",
+      "saving": "Đang lưu..."
+    }
+  },
+  "about": {
+    "title": "Về ABC Corporation",
+    "description": "ABC Corporation là công ty công nghệ hàng đầu tại Việt Nam, tiên phong trong chuyển đổi số và đổi mới công nghệ. Với sự hiện diện toàn cầu và nhiều thập kỷ kinh nghiệm, chúng tôi cung cấp các dịch vụ đẳng cấp thế giới về Giải pháp CNTT, Chuyển đổi số và Đào tạo Công nghệ.",
+    "mission": {
+      "title": "Sứ mệnh của chúng tôi",
+      "content": "Trở thành người tiên phong trong chuyển đổi số, cung cấp các dịch vụ và giải pháp đẳng cấp thế giới."
+    },
+    "vision": {
+      "title": "Tầm nhìn của chúng tôi",
+      "content": "Trở thành nhà cung cấp dịch vụ và giải pháp chuyển đổi số hàng đầu 50 toàn cầu vào năm 2030."
+    },
+    "values": {
+      "title": "Giá trị cốt lõi",
+      "content": "Đổi mới, Cam kết, Làm việc nhóm và Lấy khách hàng làm trung tâm."
+    }
+  }
+} 

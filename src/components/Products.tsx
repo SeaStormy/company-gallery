@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../services/api';
 import ProductForm from './ProductForm';
 import ProductDetailsModal from './ProductDetailsModal';
@@ -9,68 +10,23 @@ interface ProductsProps {
   isAdmin: boolean;
 }
 
-interface Filter {
-  search: string;
-  minPrice: string;
-  maxPrice: string;
-  sortBy: 'name' | 'price';
-  sortOrder: 'asc' | 'desc';
-}
-
-// Temporary mock data - replace with actual API call later
-const mockProducts: Product[] = [
-  {
-    _id: '1',
-    name: 'Product 1',
-    description: 'This is a description for product 1',
-    price: 99.99,
-    image: 'product1.jpg',
-    category: 'Category 1',
-    specifications: {
-      'Spec 1': 'Value 1',
-      'Spec 2': 'Value 2',
-    },
-  },
-  {
-    _id: '2',
-    name: 'Product 2',
-    description: 'This is a description for product 2',
-    price: 149.99,
-    image: 'product2.jpg',
-    category: 'Category 2',
-    specifications: {
-      'Spec 1': 'Value 1',
-      'Spec 2': 'Value 2',
-    },
-  },
-  {
-    _id: '3',
-    name: 'Product 3',
-    description: 'This is a description for product 3',
-    price: 199.99,
-    image: 'product3.jpg',
-    category: 'Category 1',
-    specifications: {
-      'Spec 1': 'Value 1',
-      'Spec 2': 'Value 2',
-    },
-  },
-];
-
 const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
+  console.log('component rendered');
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isBulkDeleteMode, setIsBulkDeleteMode] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [filters, setFilters] = useState<Filter>({
-    search: '',
-    minPrice: '',
-    maxPrice: '',
-    sortBy: 'name',
-    sortOrder: 'asc',
-  });
+
+  // Separate states for each filter
+  const [searchFilter, setSearchFilter] = useState('');
+  const [minPriceFilter, setMinPriceFilter] = useState('');
+  const [maxPriceFilter, setMaxPriceFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'price'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
@@ -83,6 +39,59 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     isBulk: false,
   });
   const [viewMode, setViewMode] = useState<'view' | 'edit' | null>(null);
+
+  // Simple filter function
+  const filteredProducts = products
+    .filter((product) => {
+      // Search filter
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchFilter.toLowerCase());
+
+      // Price filters
+      const minPrice = minPriceFilter ? parseFloat(minPriceFilter) : null;
+      const maxPrice = maxPriceFilter ? parseFloat(maxPriceFilter) : null;
+
+      const matchesMinPrice = minPrice === null || product.price >= minPrice;
+      const matchesMaxPrice = maxPrice === null || product.price <= maxPrice;
+
+      return matchesSearch && matchesMinPrice && matchesMaxPrice;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') {
+        return sortOrder === 'asc'
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else {
+        return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+      }
+    });
+
+  // Separate handlers for each filter
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchFilter(e.target.value);
+    setIsFilterActive(true);
+  };
+
+  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMinPriceFilter(e.target.value);
+    setIsFilterActive(true);
+  };
+
+  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMaxPriceFilter(e.target.value);
+    setIsFilterActive(true);
+  };
+
+  const handleSortByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value as 'name' | 'price');
+    setIsFilterActive(true);
+  };
+
+  const handleSortOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(e.target.value as 'asc' | 'desc');
+    setIsFilterActive(true);
+  };
 
   const fetchProducts = async () => {
     try {
@@ -209,44 +218,16 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
     }
   };
 
-  const filteredProducts = React.useMemo(() => {
-    if (!isFilterActive) {
-      return products;
-    }
-
-    return products
-      .filter((product) => {
-        const matchesSearch = product.name
-          .toLowerCase()
-          .includes(filters.search.toLowerCase());
-        const matchesMinPrice =
-          !filters.minPrice || product.price >= Number(filters.minPrice);
-        const matchesMaxPrice =
-          !filters.maxPrice || product.price <= Number(filters.maxPrice);
-        return matchesSearch && matchesMinPrice && matchesMaxPrice;
-      })
-      .sort((a, b) => {
-        if (filters.sortBy === 'name') {
-          return filters.sortOrder === 'asc'
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name);
-        } else {
-          return filters.sortOrder === 'asc'
-            ? a.price - b.price
-            : b.price - a.price;
-        }
-      });
-  }, [products, filters, isFilterActive]);
-
-  const handleFilterChange = (newFilters: Partial<Filter>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-    setIsFilterActive(true);
+  const handleCreate = () => {
+    setSelectedProduct(null);
+    setViewMode('edit');
+    setIsFormOpen(true);
   };
 
   const FilterDrawer = () => (
     <div className="bg-white p-4 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Filters</h2>
+        <h2 className="text-lg font-semibold">{t('products.filter.title')}</h2>
         <button
           onClick={() => setIsFilterDrawerOpen(false)}
           className="sm:hidden text-gray-500 hover:text-gray-700"
@@ -270,13 +251,13 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       {/* Search */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Search
+          {t('products.filter.search')}
         </label>
         <input
           type="text"
-          value={filters.search}
-          onChange={(e) => handleFilterChange({ search: e.target.value })}
-          placeholder="Search products..."
+          value={searchFilter}
+          onChange={handleSearchChange}
+          placeholder={t('products.filter.search')}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
@@ -284,21 +265,21 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       {/* Price Range */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Price Range
+          {t('products.filter.price')}
         </label>
         <div className="flex gap-2">
           <input
             type="number"
-            value={filters.minPrice}
-            onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
-            placeholder="Min"
+            value={minPriceFilter}
+            onChange={handleMinPriceChange}
+            placeholder={t('products.filter.min')}
             className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <input
             type="number"
-            value={filters.maxPrice}
-            onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
-            placeholder="Max"
+            value={maxPriceFilter}
+            onChange={handleMaxPriceChange}
+            placeholder={t('products.filter.max')}
             className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
@@ -307,38 +288,30 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       {/* Sort */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Sort By
+          {t('products.filter.sort')}
         </label>
         <select
-          value={filters.sortBy}
-          onChange={(e) =>
-            handleFilterChange({
-              sortBy: e.target.value as 'name' | 'price',
-            })
-          }
+          value={sortBy}
+          onChange={handleSortByChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-          <option value="name">Name</option>
-          <option value="price">Price</option>
+          <option value="name">{t('products.filter.name')}</option>
+          <option value="price">{t('products.filter.price')}</option>
         </select>
       </div>
 
       {/* Sort Order */}
-      <div className="mb-6">
+      <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Sort Order
+          {t('products.filter.order')}
         </label>
         <select
-          value={filters.sortOrder}
-          onChange={(e) =>
-            handleFilterChange({
-              sortOrder: e.target.value as 'asc' | 'desc',
-            })
-          }
+          value={sortOrder}
+          onChange={handleSortOrderChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
+          <option value="asc">{t('products.filter.ascending')}</option>
+          <option value="desc">{t('products.filter.descending')}</option>
         </select>
       </div>
 
@@ -346,10 +319,10 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       {isAdmin && (
         <div className="space-y-3">
           <button
-            onClick={() => setIsFormOpen(true)}
+            onClick={handleCreate}
             className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-300"
           >
-            Create New Product
+            {t('products.actions.create')}
           </button>
           <button
             onClick={toggleBulkDeleteMode}
@@ -359,14 +332,18 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            {isBulkDeleteMode ? 'Cancel Bulk Delete' : 'Bulk Delete'}
+            {isBulkDeleteMode
+              ? t('products.actions.cancelBulkDelete')
+              : t('products.actions.bulkDelete')}
           </button>
           {isBulkDeleteMode && selectedProducts.length > 0 && (
             <button
               onClick={handleBulkDelete}
               className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors duration-300"
             >
-              Delete Selected ({selectedProducts.length})
+              {t('products.actions.deleteSelected', {
+                count: selectedProducts.length,
+              })}
             </button>
           )}
         </div>
@@ -452,10 +429,11 @@ const Products: React.FC<ProductsProps> = ({ isAdmin }) => {
       )}
 
       {/* Product Form Modal */}
-      {viewMode === 'edit' && selectedProduct && (
+      {isFormOpen && (
         <ProductForm
           product={selectedProduct}
           onClose={() => {
+            setIsFormOpen(false);
             setViewMode(null);
             setSelectedProduct(null);
           }}
@@ -523,6 +501,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onEdit,
   onViewDetails,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div
       className={`bg-white rounded-lg shadow-md overflow-hidden relative ${
@@ -603,7 +583,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             onClick={onViewDetails}
             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
-            View Details
+            {t('products.actions.viewDetails')}
           </button>
         </div>
       </div>

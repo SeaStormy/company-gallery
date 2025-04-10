@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../services/api';
 import Notification from './Notification';
+import LanguageSwitcher from './LanguageSwitcher';
+
+interface Settings {
+  notification?: {
+    text: {
+      en: string;
+      vi: string;
+    };
+    isActive: boolean;
+  };
+}
 
 interface NavbarProps {
   isAdmin: boolean;
@@ -16,11 +28,21 @@ const Navbar: React.FC<NavbarProps> = ({
   onLoginClick,
   onNotificationHeightChange,
 }) => {
+  const { t, i18n } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [notificationHeight, setNotificationHeight] = useState(0);
   const [logo, setLogo] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [settings, setSettings] = useState<Settings>({
+    notification: {
+      text: {
+        en: '',
+        vi: '',
+      },
+      isActive: false,
+    },
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +71,22 @@ const Navbar: React.FC<NavbarProps> = ({
     fetchLogo();
   }, []);
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/settings`);
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -56,7 +94,19 @@ const Navbar: React.FC<NavbarProps> = ({
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       {/* Notification component */}
-      <Notification onHeightChange={onNotificationHeightChange} />
+      <Notification
+        text={settings.notification?.text}
+        isVisible={settings.notification?.isActive}
+        onClose={() => {
+          setSettings((prev) => ({
+            ...prev,
+            notification: {
+              text: prev.notification?.text || { en: '', vi: '' },
+              isActive: false,
+            },
+          }));
+        }}
+      />
 
       {/* Navbar */}
       <nav
@@ -95,7 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
-                  Home
+                  {t('navbar.home')}
                 </Link>
                 <Link
                   to="/products"
@@ -109,7 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
-                  Products
+                  {t('navbar.products')}
                 </Link>
                 <Link
                   to="/showcases"
@@ -123,11 +173,12 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
-                  Showcases
+                  {t('navbar.showcases')}
                 </Link>
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
+              <LanguageSwitcher isScrolled={isScrolled} />
               {isAdmin && (
                 <>
                   <Link
@@ -154,7 +205,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Settings
+                    {t('navbar.settings')}
                   </Link>
                   <button
                     onClick={onLogout}
@@ -164,7 +215,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         : 'bg-gray-800 text-white hover:bg-gray-700'
                     } px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
                   >
-                    Logout
+                    {t('navbar.logout')}
                   </button>
                 </>
               )}
@@ -177,7 +228,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'bg-blue-500 text-white hover:bg-blue-600'
                   } px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300`}
                 >
-                  Login
+                  {t('navbar.login')}
                 </button>
               )}
             </div>
@@ -255,7 +306,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'border-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-300 hover:text-white'
               } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             >
-              Home
+              {t('navbar.home')}
             </Link>
             <Link
               to="/products"
@@ -269,7 +320,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'border-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-300 hover:text-white'
               } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             >
-              Products
+              {t('navbar.products')}
             </Link>
             <Link
               to="/showcases"
@@ -283,7 +334,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'border-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-300 hover:text-white'
               } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             >
-              Showcases
+              {t('navbar.showcases')}
             </Link>
             {isAdmin && (
               <Link
@@ -311,7 +362,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       clipRule="evenodd"
                     />
                   </svg>
-                  Settings
+                  {t('navbar.settings')}
                 </div>
               </Link>
             )}
@@ -327,7 +378,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'bg-gray-800 text-white hover:bg-gray-700'
                   } block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-300`}
                 >
-                  Logout
+                  {t('navbar.logout')}
                 </button>
               ) : (
                 <button
@@ -338,7 +389,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       : 'bg-blue-500 text-white hover:bg-blue-600'
                   } block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-300`}
                 >
-                  Login
+                  {t('navbar.login')}
                 </button>
               )}
             </div>
